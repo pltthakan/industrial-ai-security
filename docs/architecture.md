@@ -180,9 +180,13 @@ doğrudan bağlanmaz.
 
 ## Video kaynakları
 
-İlk kaynak sabit bir yerel MP4 dosyasıdır. Local pipeline tamamlanmadan RTSP
-eklenmez. Phase 14'te FFmpeg ile test videosu MediaMTX'e yayınlanarak fiziksel
-kamera olmadan RTSP davranışı simüle edilir.
+İlk kaynak sabit bir yerel MP4 dosyasıdır. Phase 2'de OpenCV tabanlı local video
+reader; kaynak açma, metadata validation, frame iteration, deterministik resource
+release ve end-of-stream detection ile tamamlanmıştır. RTSP bu pipeline'dan ayrı
+bir video işleme yolu oluşturmayacak, ileride aynı kaynak sınırını kullanacaktır.
+
+Local pipeline tamamlanmadan RTSP eklenmez. Phase 14'te FFmpeg ile test videosu
+MediaMTX'e yayınlanarak fiziksel kamera olmadan RTSP davranışı simüle edilir.
 
 ## Dağıtım sınırları
 

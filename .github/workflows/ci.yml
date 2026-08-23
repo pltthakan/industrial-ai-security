@@ -73,7 +73,7 @@ jobs:
       - name: Run CV engine tests
         if: steps.project.outputs.ready == 'true'
         working-directory: cv-engine
-        run: uv run pytest --cov --cov-report=term-missing
+        run: uv run pytest --cov=industrial_ai_security_cv --cov-report=term-missing
 
   backend:
     name: Backend checks
@@ -194,4 +194,3 @@ jobs:
             exit 0
           fi
           docker compose -f "$compose_file" config --quiet
-

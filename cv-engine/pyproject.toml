@@ -1,0 +1,38 @@
+[project]
+name = "industrial-ai-security-cv"
+version = "0.1.0"
+description = "Computer vision worker for the Industrial AI Security platform"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy>=2.0,<3",
+    "opencv-python-headless>=4.10,<5",
+    "pydantic>=2.8,<3",
+    "pydantic-settings>=2.4,<3",
+]
+
+[project.scripts]
+cv-video-probe = "industrial_ai_security_cv.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<10",
+    "pytest-cov>=5,<8",
+]
+
+[build-system]
+requires = ["uv-build>=0.10,<0.13"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+addopts = ["--strict-config", "--strict-markers"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["industrial_ai_security_cv"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+

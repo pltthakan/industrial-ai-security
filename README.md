@@ -23,8 +23,9 @@ Factory CCTV MP4
 
 ## Proje durumu
 
-Phase 1 tamamlandı: repository kuralları, mimari dokümanı ve proje durum
-kaydı oluşturuldu. Sıradaki çalışma Phase 2'de yerel MP4 okuma pipeline'ıdır.
+Phase 2 tamamlandı: repository temeline ek olarak Python 3.12 CV engine projesi,
+yerel MP4 okuma pipeline'ı ve testleri oluşturuldu. Sıradaki çalışma Phase 3'te
+YOLO ile person detection'dır.
 Güncel ve ayrıntılı durum için [`docs/project-state.md`](docs/project-state.md)
 dosyasına bakın.
 

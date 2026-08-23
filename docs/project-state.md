@@ -4,7 +4,7 @@ Last updated: 2026-08-23
 
 ## Current phase
 
-Phase 1 — Repository and project documentation: complete.
+Phase 2 — Local MP4 video processing: complete.
 
 ## Completed
 
@@ -24,34 +24,45 @@ Phase 1 — Repository and project documentation: complete.
 - Translated `AGENTS.md` to Turkish and formalized pragmatic SOLID, module
   responsibility, hybrid sync/async communication, idempotent Kafka processing,
   and future service-level database credential ownership.
+- Initialized the Python 3.12 CV engine with `uv`, `pyproject.toml`, and a
+  committed `uv.lock`.
+- Added typed local-video settings, validated metadata models, deterministic
+  OpenCV capture lifecycle, frame iteration, and end-of-stream probing.
+- Added focused tests using a generated synthetic video so CI does not depend on
+  a large sample asset.
+- Verified 11 tests with 93% production-package coverage on Python 3.12.14.
+- Probed the supplied 1920x1080 H.264 video end to end: all 102 frames decoded
+  and end of stream was reached.
 
 ## Next
 
-Phase 2 — Local MP4 video processing.
+Phase 3 — YOLO person detection.
 
 Expected scope:
 
-- Initialize the Python 3.12 `cv-engine` project with `uv`.
-- Read the supplied MP4 with `opencv-python-headless`.
-- Validate source opening, frame iteration, metadata, and end-of-stream behavior.
-- Add focused pytest coverage.
-- Do not add YOLO yet; detection belongs to Phase 3.
+- Add PyTorch and Ultralytics YOLO through `uv`.
+- Detect only the `person` class in decoded frames.
+- Keep detection separate from tracking; ByteTrack belongs to Phase 4.
+- Add typed detection output and focused tests.
+- Run the detector against the supplied factory-floor video.
 
 ## Environment observations
 
 The workstation tools observed during Phase 1 do not yet match the project
 baseline:
 
-- Python: installed 3.14.7; required 3.12.x.
+- Python: system default is 3.14.7; `uv` manages Python 3.12.14 for the CV
+  engine.
 - Java: installed 17; required 21 LTS.
 - Node.js: installed 24.11.1; required 22 LTS.
-- `uv`: not installed.
+- `uv`: 0.12.5 installed through Homebrew.
 - Docker and Docker Compose are available.
 
-Only Python 3.12 and `uv` are needed for the next phase. Java and Node can be
-aligned when their phases begin.
+Java and Node can be aligned when their phases begin.
 
 ## Known issues
 
-- No application code exists yet by design.
-- The sample MP4 has not been copied into the repository.
+- The user-level `/Users/hakan/.local` directory is owned by root, so local `uv`
+  verification used writable macOS Library paths for managed Python and cache.
+- The factory-floor MP4 is present locally under `samples/` and intentionally
+  ignored by Git.
