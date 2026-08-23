@@ -30,7 +30,8 @@ Phase 2 — Local MP4 video processing: complete.
   OpenCV capture lifecycle, frame iteration, and end-of-stream probing.
 - Added focused tests using a generated synthetic video so CI does not depend on
   a large sample asset.
-- Verified 11 tests with 93% production-package coverage on Python 3.12.14.
+- Verified 19 tests with 98.86% branch-aware production-package coverage on
+  Python 3.12.14.
 - Probed the supplied 1920x1080 H.264 video end to end: all 102 frames decoded
   and end of stream was reached.
 

@@ -30,9 +30,9 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
+omit = ["*/__main__.py"]
 source = ["industrial_ai_security_cv"]
 
 [tool.coverage.report]
 fail_under = 90
 show_missing = true
-

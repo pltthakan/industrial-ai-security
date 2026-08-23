@@ -44,8 +44,7 @@ uv run --project cv-engine cv-video-probe
 ## Test
 
 ```bash
-uv run --project cv-engine pytest \
-  -c cv-engine/pyproject.toml \
+uv run --directory cv-engine pytest \
   --cov=industrial_ai_security_cv \
   --cov-report=term-missing
 ```

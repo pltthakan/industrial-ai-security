@@ -29,3 +29,29 @@ def test_cli_reports_missing_source(
     assert exit_code == 2
     captured = capsys.readouterr()
     assert "Local video file does not exist" in captured.err
+
+
+def test_cli_uses_environment_source_and_honors_frame_limit(
+    synthetic_video: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("CV_SOURCE", str(synthetic_video))
+
+    exit_code = main(["--max-frames", "2"])
+
+    assert exit_code == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["decoded_frames"] == 2
+    assert result["reached_end_of_stream"] is False
+
+
+def test_cli_rejects_non_positive_frame_limit(
+    synthetic_video: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    exit_code = main(
+        ["--source", str(synthetic_video), "--max-frames", "0"]
+    )
+
+    assert exit_code == 2
+    assert "greater than 0" in capsys.readouterr().err
