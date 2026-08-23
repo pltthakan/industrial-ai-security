@@ -1,0 +1,197 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository:
+    name: Repository validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate repository structure
+        run: bash scripts/ci/validate-repository.sh
+
+  cv-engine:
+    name: CV engine checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Detect CV engine project
+        id: project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -e cv-engine/pyproject.toml && ! -e cv-engine/uv.lock ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CV engine is not initialized yet; checks activate in Phase 2."
+            exit 0
+          fi
+          if [[ ! -f cv-engine/pyproject.toml || ! -f cv-engine/uv.lock ]]; then
+            echo "::error::cv-engine/pyproject.toml and cv-engine/uv.lock must be committed together."
+            exit 1
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python 3.12
+        if: steps.project.outputs.ready == 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Set up uv
+        if: steps.project.outputs.ready == 'true'
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+          cache-dependency-glob: cv-engine/uv.lock
+
+      - name: Install locked dependencies
+        if: steps.project.outputs.ready == 'true'
+        working-directory: cv-engine
+        run: uv sync --locked --all-groups
+
+      - name: Run CV engine tests
+        if: steps.project.outputs.ready == 'true'
+        working-directory: cv-engine
+        run: uv run pytest --cov --cov-report=term-missing
+
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Detect backend project
+        id: project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -e backend/pom.xml && ! -e backend/mvnw && ! -e backend/.mvn ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Backend is not initialized yet; checks activate in Phase 8."
+            exit 0
+          fi
+          required=(backend/pom.xml backend/mvnw backend/.mvn/wrapper/maven-wrapper.properties)
+          for path in "${required[@]}"; do
+            if [[ ! -f "$path" ]]; then
+              echo "::error file=$path::Backend Maven Wrapper is incomplete."
+              exit 1
+            fi
+          done
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java 21
+        if: steps.project.outputs.ready == 'true'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Run backend verification
+        if: steps.project.outputs.ready == 'true'
+        working-directory: backend
+        run: ./mvnw -B -ntp verify
+
+      - name: Upload backend test reports
+        if: always() && steps.project.outputs.ready == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: backend-test-reports
+          path: backend/target/surefire-reports/*
+          if-no-files-found: ignore
+          retention-days: 7
+
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Detect frontend project
+        id: project
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -e frontend/package.json && ! -e frontend/package-lock.json ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Frontend is not initialized yet; checks activate in Phase 13."
+            exit 0
+          fi
+          if [[ ! -f frontend/package.json || ! -f frontend/package-lock.json ]]; then
+            echo "::error::frontend/package.json and frontend/package-lock.json must be committed together."
+            exit 1
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js 22
+        if: steps.project.outputs.ready == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        if: steps.project.outputs.ready == 'true'
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run frontend checks
+        if: steps.project.outputs.ready == 'true'
+        working-directory: frontend
+        run: |
+          npm run lint --if-present
+          npm run test:ci --if-present
+          npm run build
+
+  compose:
+    name: Docker Compose validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate Compose configuration when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose_file=""
+          for candidate in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do
+            if [[ -f "$candidate" ]]; then
+              compose_file="$candidate"
+              break
+            fi
+          done
+          if [[ -z "$compose_file" ]]; then
+            echo "::notice::Compose is not initialized yet; validation will activate when a Compose file is added."
+            exit 0
+          fi
+          docker compose -f "$compose_file" config --quiet
+
