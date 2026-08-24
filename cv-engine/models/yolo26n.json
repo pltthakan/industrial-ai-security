@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "model_id": "yolo26n",
+  "weights_file": "yolo26n.pt",
+  "task": "object-detection",
+  "framework": "Ultralytics",
+  "framework_version_verified": "8.4.127",
+  "inference_class": {
+    "id": 0,
+    "name": "person"
+  },
+  "baseline_configuration": {
+    "confidence": 0.25,
+    "iou": 0.7,
+    "image_size": 960,
+    "device": "cpu"
+  },
+  "source_url": "https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt",
+  "sha256": "9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef",
+  "verified_at": "2026-08-23",
+  "license": {
+    "provider": "Ultralytics",
+    "options": [
+      "AGPL-3.0",
+      "Enterprise"
+    ],
+    "url": "https://www.ultralytics.com/license"
+  },
+  "notes": "Weights are downloaded locally and ignored by Git. Confirm the appropriate Ultralytics license before distribution or commercial deployment."
+}

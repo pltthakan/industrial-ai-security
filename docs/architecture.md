@@ -37,6 +37,30 @@ yalnızca `person` algılar. Ultralytics'in yerleşik ByteTrack entegrasyonu, ka
 arasında kalıcı `track_id` üretir. Bölge motoru, kişinin bounding box alt-orta
 noktasını polygon'a karşı değerlendirir.
 
+Phase 3 itibarıyla detection adapter'ı varsayılan olarak CPU üzerinde
+`yolo26n.pt`, 960 piksel inference boyutu ve 0.25 confidence eşiği kullanır.
+Ultralytics'e açıkça COCO class `0` (`person`) filtresi gönderilir; dış
+kütüphaneden gelen `xyxy`, confidence ve class alanları application sınırında
+Pydantic modellerine çevrilip doğrulanır. Ultralytics sonucu CV engine'in geri
+kalanına doğrudan sızdırılmaz.
+
+960/0.25 baseline'ı, verilen 1920x1080 ve 6 FPS video üzerinde 640/0.35 ile
+1280/0.25 denemeleri karşılaştırılarak seçilmiştir. 960 ayarı uzaktaki küçük
+kişileri görsel kontrolde daha iyi yakalamıştır. Ardışık son doğrulamada yaklaşık
+48.38 ms/kare ile kaynağın 166.67 ms/kare zaman bütçesinin altında kalmıştır;
+bu değerler donanım ve sistem yüküne bağlı gözlemlerdir. Bu sahneye özel başlangıç
+kalibrasyonudur; production accuracy iddiası değildir.
+
+Annotated video yalnızca yerel doğrulama artifact'ıdır ve source of truth
+değildir. Phase 3 tracking, zone veya incident semantiği üretmez. Aynı kişinin
+farklı karelerdeki detection'ları bağımsızdır; kalıcı `track_id` Phase 4'te
+ByteTrack ile eklenecektir.
+
+Model ağırlığı Git'e eklenmez. Seçilen ağırlığın kaynak URL'i, SHA-256 değeri ve
+lisans notu `cv-engine/models/yolo26n.json` manifestinde tutulur. Phase 3 gerçek
+video çalıştırması pipeline entegrasyonunu doğrular; model accuracy kabul testi
+veya production kalite eşiği değildir.
+
 Bir ihlal oluştuğunda CV engine typed bir `IncidentEvent` üretip
 `security.incidents` Kafka topic'ine yollar. CV engine PostgreSQL veya Redis'e
 bağlanmaz. Snapshot gerekiyorsa Kafka mesajına binary eklenmez; yalnızca ayrı
@@ -182,8 +206,10 @@ doğrudan bağlanmaz.
 
 İlk kaynak sabit bir yerel MP4 dosyasıdır. Phase 2'de OpenCV tabanlı local video
 reader; kaynak açma, metadata validation, frame iteration, deterministik resource
-release ve end-of-stream detection ile tamamlanmıştır. RTSP bu pipeline'dan ayrı
-bir video işleme yolu oluşturmayacak, ileride aynı kaynak sınırını kullanacaktır.
+release ve end-of-stream detection ile tamamlanmıştır. Phase 3'te bu frame akışı
+person-only YOLO adapter'ına bağlanmış ve annotated output ile uçtan uca yerel
+olarak doğrulanmıştır. RTSP bu pipeline'dan ayrı bir video işleme yolu
+oluşturmayacak, ileride aynı kaynak sınırını kullanacaktır.
 
 Local pipeline tamamlanmadan RTSP eklenmez. Phase 14'te FFmpeg ile test videosu
 MediaMTX'e yayınlanarak fiziksel kamera olmadan RTSP davranışı simüle edilir.

@@ -6,12 +6,15 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "numpy>=2.0,<3",
-    "opencv-python-headless>=4.10,<5",
+    "opencv-python-headless!=4.13.0.90,>=4.10,<5",
     "pydantic>=2.8,<3",
     "pydantic-settings>=2.4,<3",
+    "torch>=2.13,<3",
+    "ultralytics>=8.4,<9",
 ]
 
 [project.scripts]
+cv-person-detect = "industrial_ai_security_cv.detection_cli:main"
 cv-video-probe = "industrial_ai_security_cv.cli:main"
 
 [dependency-groups]
@@ -23,6 +26,20 @@ dev = [
 [build-system]
 requires = ["uv-build>=0.10,<0.13"]
 build-backend = "uv_build"
+
+[tool.uv]
+exclude-dependencies = [
+    { package = { name = "ultralytics" }, dependencies = ["opencv-python"] },
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [tool.pytest.ini_options]
 addopts = ["--strict-config", "--strict-markers"]

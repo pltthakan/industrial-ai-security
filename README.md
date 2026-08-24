@@ -23,9 +23,10 @@ Factory CCTV MP4
 
 ## Proje durumu
 
-Phase 2 tamamlandı: repository temeline ek olarak Python 3.12 CV engine projesi,
-yerel MP4 okuma pipeline'ı ve testleri oluşturuldu. Sıradaki çalışma Phase 3'te
-YOLO ile person detection'dır.
+Phase 3 tamamlandı: Python 3.12 CV engine yerel MP4 akışı, CPU-first YOLO26n
+person detection, typed detection contract'ları, annotated video çıktısı ve
+testleriyle doğrulandı. Sıradaki çalışma Phase 4'te Ultralytics'in yerleşik
+ByteTrack entegrasyonuyla object tracking'dir.
 Güncel ve ayrıntılı durum için [`docs/project-state.md`](docs/project-state.md)
 dosyasına bakın.
 

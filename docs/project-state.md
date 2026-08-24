@@ -4,7 +4,7 @@ Last updated: 2026-08-23
 
 ## Current phase
 
-Phase 2 — Local MP4 video processing: complete.
+Phase 3 — YOLO person detection: complete.
 
 ## Completed
 
@@ -34,18 +34,42 @@ Phase 2 — Local MP4 video processing: complete.
   Python 3.12.14.
 - Probed the supplied 1920x1080 H.264 video end to end: all 102 frames decoded
   and end of stream was reached.
+- Added locked PyTorch 2.13 and Ultralytics 8.4 dependencies with CPU-only
+  PyTorch wheels and retained `opencv-python-headless` instead of the GUI build.
+- Added a YOLO26n adapter that explicitly requests only COCO class `0`
+  (`person`) and converts external detections into validated Pydantic contracts.
+- Added configurable confidence, IoU, image size, device, source, output, and
+  frame-limit settings plus the `cv-person-detect` CLI.
+- Compared 640/0.35, 960/0.25, and 1280/0.25 configurations on the supplied
+  scene. Selected 960/0.25 because visual review recovered small distant people
+  while the final sequential run observed 48.38 ms/frame, below the 166.67 ms
+  source frame budget. The sequential 1280 run observed 82.41 ms/frame and did
+  not provide a useful visual gain.
+- Added annotated-video orchestration while keeping detection independent from
+  tracking, zone, incident, and Kafka behavior.
+- Recorded model source, SHA-256, framework version, and Ultralytics licensing
+  note in `cv-engine/models/yolo26n.json`; weights remain ignored by Git.
+- Verified 45 tests with 97.32% branch-aware production-package coverage. Tests
+  use an inference double and do not download model weights in CI.
+- Ran the selected YOLO26n baseline on all 102 frames of the supplied
+  factory-floor video: 643 person detections across 102 frames and approximately
+  48.38 ms average inference per frame in the final sequential run.
+- Verified the annotated output as MPEG-4, 1920x1080, 6 FPS, 102 frames and
+  visually inspected its midpoint. This is a functional integration result,
+  not a model-accuracy benchmark.
 
 ## Next
 
-Phase 3 — YOLO person detection.
+Phase 4 — ByteTrack object tracking.
 
 Expected scope:
 
-- Add PyTorch and Ultralytics YOLO through `uv`.
-- Detect only the `person` class in decoded frames.
-- Keep detection separate from tracking; ByteTrack belongs to Phase 4.
-- Add typed detection output and focused tests.
-- Run the detector against the supplied factory-floor video.
+- Use Ultralytics' built-in ByteTrack integration; do not add a separate
+  tracking package.
+- Assign stable track IDs to person detections across frames.
+- Keep tracking output typed and independent from zone/incident behavior.
+- Add deterministic tests for track ID propagation and lifecycle boundaries.
+- Run tracking against the supplied factory-floor video.
 
 ## Environment observations
 
